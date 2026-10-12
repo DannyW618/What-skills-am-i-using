@@ -1,0 +1,6 @@
+{
+  "name": "what-skills-am-i-using",
+  "description": "A Claude Code mod that shows the skills, plugins, subagents and MCP tools a conversation uses",
+  "owner": { "name": "Danny Wang" },
+  "plugins": [{ "name": "what-skills-am-i-using", "source": "./" }]
+}
