@@ -1,6 +1,6 @@
 {
   "name": "what-skills-am-i-using",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Shows which skills, plugins, subagents and MCP tools this conversation has used, in a band above the prompt you can fold open",
   "author": { "name": "Danny Wang" },
   "license": "MIT",

@@ -9,6 +9,7 @@ const host = (on: any, typed: any[] = []) => {
   on('command.list', () => ({ value: typed }))
   on('command.run', () => ({ text: 'ran' }))
   on('session.messages', () => ({ value: [{ role: 'assistant', text: '', toolUses: [{ tool_use_id: 'old', tool: 'Skill', input: { skill: 'humanizer' } }] }] }))
+  on('ui.toast', () => ({ value: undefined }))
   on('ui.render', ($: any, e: any) => $.ui.resolve(e).Text({ children: 'engine band' }))
   on('tool.call', (_$: any, e: any) => (e.tool === 'mcp__chrome__navigate' ? { result: {} as any, text: 'boom', isError: true } : { result: {} as any, text: 'ok' }))
 }
@@ -72,6 +73,12 @@ for (const surface of ['terminal', 'desktop'] as const) {
     expect(await ui.find({ type: 'Text', text: /what-skills lists everything/ })).toBeDefined()
     await ui.press({ key: 'toggle' })
     expect(await ui.find({ type: 'Text', text: /^MCP server$/ })).toBeUndefined()
+    // The × closes the band without losing the counts, and the command brings it back.
+    await ui.press({ key: 'close' })
+    expect(await ui.find({ key: 'toggle' })).toBeUndefined()
+    expect((await cmd($, 'what-skills')).text).toMatch(/^15 skills/)
+    await cmd($, 'what-skills', 'show')
+    expect(await ui.find({ key: 'toggle' })).toBeDefined()
     expect((await cmd($, 'what-skills', 'reset')).text).toMatch(/Cleared/)
     expect(await ui.find({ key: 'toggle' })).toBeUndefined()
     await ui.unmount()

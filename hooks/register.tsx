@@ -14,6 +14,7 @@ const MAX_ORDER = 8
 const MAX_HISTORY = 30
 const usesAtom = atom({ plugin: 'what-skills-am-i-using', key: 'uses' } as const, {})
 const openAtom = atom({ plugin: 'what-skills-am-i-using', key: 'isOpen' } as const, false)
+const hiddenAtom = atom({ plugin: 'what-skills-am-i-using', key: 'isHidden' } as const, false)
 // The newest `seq` when the running turn began: anything above it was used in this turn.
 const markAtom = atom({ plugin: 'what-skills-am-i-using', key: 'turnMark' } as const, 0)
 
@@ -24,7 +25,7 @@ const safe = <T,>($: EngineInterface, p: Promise<T>) =>
 export const register: Register = on => {
   on('session.start', async ($, e, next) => {
     await safe($, (async () => {
-      await $.command.register({ name: 'what-skills', description: 'List the skills, plugins, subagents and MCP tools this conversation has used', argumentHint: '[reset]' })
+      await $.command.register({ name: 'what-skills', description: 'List the skills, plugins, subagents and MCP tools this conversation has used', argumentHint: '[reset|hide|show]' })
       // A resumed conversation (or a mod installed mid-way) starts from what the transcript already holds.
       // shortcut: only the main conversation's rows are replayed, upgrade if past subagents' own calls matter after a resume.
       const rows = await $.session.messages()
@@ -77,7 +78,12 @@ export const register: Register = on => {
   }).catch(($, e, next) => next(e))
 
   on('command.run', { command: 'what-skills' }, async ($, e) => {
-    if (e.args.trim() === 'reset') {
+    const arg = e.args.trim()
+    if (arg === 'hide' || arg === 'show') {
+      await update($, hiddenAtom, () => arg === 'hide')
+      return { text: arg === 'hide' ? 'Band hidden; it keeps counting. /what-skills show brings it back.' : 'Band shown.' }
+    }
+    if (arg === 'reset') {
       await update($, usesAtom, () => ({}))
       return { text: 'Cleared. Counting starts again from here.' }
     }
@@ -89,7 +95,7 @@ export const register: Register = on => {
   on('ui.render', { component: 'AbovePrompt' }, async ($, e, next) => {
     const uses = await read($, usesAtom)
     const below = await next(e)
-    if (e.props.hasSurvey || !Object.keys(uses).length) return below
+    if (e.props.hasSurvey || !Object.keys(uses).length || (await read($, hiddenAtom))) return below
     const isOpen = await read($, openAtom)
     const E = $.ui.resolve(e)
     const { Box, Button, Text } = E
@@ -102,7 +108,7 @@ export const register: Register = on => {
     const isActive = all.some(u => u.running) || (e.props.isWorking && last.seq > (await read($, markAtom)))
     const counts = summary(uses)
     // The chain ends at the latest use and reaches back as far as the line has room for.
-    const room = e.props.bodyColumns - counts.length - 16
+    const room = e.props.bodyColumns - counts.length - 20
     const shown = [last]
     for (let i = all.length - 2, used = last.name.length + 4; i >= 0 && shown.length < MAX_ORDER; i -= 1) {
       used += all[i]!.name.length + 3
@@ -126,6 +132,7 @@ export const register: Register = on => {
           <Box gap={2} flexShrink={0}>
             <Text dimColor>{counts}</Text>
             <Button key="toggle" label={isOpen ? 'Hide' : 'Show'} onPress={() => update($, openAtom, was => !was)} />
+            <Button key="close" label="×" plain role="dismiss" onPress={async () => { await update($, hiddenAtom, () => true); $.ui.toast('Band closed for this conversation; it keeps counting. /what-skills show brings it back.') }} />
           </Box>
         </Box>
         {isOpen && (

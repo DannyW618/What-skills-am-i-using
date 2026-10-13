@@ -7,6 +7,6 @@ export type Uses = Record<string, Use>
 
 declare module 'claude-code' {
   interface PluginState {
-    'what-skills-am-i-using': { uses: Uses; isOpen: boolean; turnMark: number }
+    'what-skills-am-i-using': { uses: Uses; isOpen: boolean; isHidden: boolean; turnMark: number }
   }
 }

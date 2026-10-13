@@ -21,10 +21,10 @@ Answer `y` to add the marketplace, then pick a scope. There is nothing to config
 One line above the prompt, once the conversation has used something:
 
 ```
-◢◤ humanizer → ponytail → navigate → read_page → Explore :.     3 skills · 1 subagent · 2 MCP tools  [ Show ]
+◢◤ humanizer → ponytail → navigate → read_page → Explore :.   3 skills · 1 subagent · 2 MCP tools  [ Show ] ×
 ```
 
-Press **Show** for the full order and one row per plugin or MCP server:
+Press **×** to close the band for this conversation (it keeps counting). Press **Show** for the full order and one row per plugin or MCP server:
 
 ```
 ╭──────────────────────────────────────────────────────────────────────────╮
@@ -57,6 +57,7 @@ Long sessions stay compact: the first line keeps the last 8 names, the open box 
 ## Command
 
 - `/what-skills` prints the full list as a tree.
+- `/what-skills hide` and `/what-skills show` close the band and bring it back.
 - `/what-skills reset` clears the counts.
 
 ## Good to know
